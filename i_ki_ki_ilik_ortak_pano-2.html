@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İki Kişilik Ortak Pano</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Yuvarlak özel renk seçici stilleri */
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            overflow: hidden;
+            cursor: pointer;
+            padding: 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            transition: transform 0.2s ease;
+        }
+        input[type="color"]:hover {
+            transform: scale(1.1);
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: none; border-radius: 50%; }
+
+        /* Kart giriş animasyonu */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-card {
+            animation: fadeInUp 0.25s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col items-center justify-between">
+
+    <!-- GİRİŞ EKRANI -->
+    <div id="loginScreen" class="w-full min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500">
+        <div class="bg-white/95 backdrop-blur-md p-8 rounded-3xl shadow-2xl max-w-md w-full border border-white/20">
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-indigo-100 text-indigo-600 mb-4 shadow-inner">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-800">Ortak Panoya Giriş</h1>
+                <p class="text-sm text-slate-500 mt-1">Lütfen erişim şifrenizi girin</p>
+            </div>
+            
+            <!-- GitHub Pages yenileme sorununu çözen e.preventDefault uyumlu form -->
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label for="passwordInput" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Şifre</label>
+                    <input type="password" id="passwordInput" required autocomplete="off"
+                        class="w-full px-4 py-3.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-center text-xl font-mono tracking-widest transition-all bg-slate-50" 
+                        placeholder="••••">
+                </div>
+                
+                <button type="submit" id="loginBtn" 
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2">
+                    <span>Giriş Yap</span>
+                </button>
+            </form>
+
+            <div id="loginError" class="mt-4 p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-medium rounded-xl text-center hidden">
+                ⚠️ Hatalı şifre! Lütfen tekrar deneyin.
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-slate-100 text-center text-xs text-slate-400 space-y-1">
+                <p>🔑 Kullanıcı 1 Şifresi: <span class="font-mono font-bold text-slate-600">1234</span></p>
+                <p>🔑 Kullanıcı 2 Şifresi: <span class="font-mono font-bold text-slate-600">5678</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ANA UYGULAMA EKRANI -->
+    <div id="appScreen" class="w-full max-w-4xl min-h-screen hidden flex-col p-4 sm:p-6 md:p-8">
+        
+        <!-- Üst Başlık & Profil Barı -->
+        <header class="bg-white/80 backdrop-blur-md p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200/80 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+                <div id="userAvatar" class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-white text-lg shadow-md">
+                    U
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-800 leading-tight">Ortak Pano</h1>
+                    <p class="text-xs text-slate-500">Aktif Kullanıcı: <span id="currentUserLabel" class="font-semibold text-slate-700"></span></p>
+                </div>
+            </div>
+
+            <button id="logoutBtn" class="w-full sm:w-auto text-xs font-semibold px-4 py-2.5 text-rose-600 bg-rose-50 hover:bg-rose-100 active:bg-rose-200 rounded-xl transition-colors flex items-center justify-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                </svg>
+                Çıkış Yap
+            </button>
+        </header>
+
+        <!-- Dynamic Color Settings Panel -->
+        <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200/80 mb-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-700">Dinamik Kart Renkleri</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Seçtiğiniz renkler tüm cihazlarda anında güncellenir.</p>
+                </div>
+                <div class="flex items-center gap-6 w-full sm:w-auto justify-between sm:justify-end bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                    <!-- User 1 Color -->
+                    <div class="flex items-center gap-2.5">
+                        <input type="color" id="colorUser1" value="#f97316" title="Kullanıcı 1 Rengi">
+                        <div class="text-left">
+                            <span class="block text-xs font-semibold text-slate-700">Kullanıcı 1</span>
+                            <span id="hexUser1" class="block text-[10px] font-mono text-slate-400">#f97316</span>
+                        </div>
+                    </div>
+                    
+                    <div class="h-8 w-px bg-slate-200"></div>
+
+                    <!-- User 2 Color -->
+                    <div class="flex items-center gap-2.5">
+                        <input type="color" id="colorUser2" value="#06b6d4" title="Kullanıcı 2 Rengi">
+                        <div class="text-left">
+                            <span class="block text-xs font-semibold text-slate-700">Kullanıcı 2</span>
+                            <span id="hexUser2" class="block text-[10px] font-mono text-slate-400">#06b6d4</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Yeni Başlık Ekleme Formu -->
+        <form id="addTitleForm" class="mb-6">
+            <div class="flex flex-col sm:flex-row gap-3">
+                <input type="text" id="titleInput" required
+                    class="flex-1 px-5 py-3.5 rounded-2xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm text-slate-800 placeholder-slate-400 bg-white" 
+                    placeholder="Bir başlık veya duyuru yazın...">
+                <button type="submit" id="addTitleBtn"
+                    class="bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] text-white font-semibold px-7 py-3.5 rounded-2xl transition-all shadow-md shadow-indigo-100 flex items-center justify-center gap-2 min-w-[140px]">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    <span>Başlık Ekle</span>
+                </button>
+            </div>
+        </form>
+
+        <!-- Bilgilendirme Tost Bildirimi -->
+        <div id="toast" class="hidden fixed bottom-6 right-6 bg-slate-800 text-white text-xs px-4 py-3 rounded-xl shadow-xl z-50 flex items-center gap-2">
+            <span id="toastMsg">İşlem başarılı</span>
+        </div>
+
+        <!-- Başlıklar Listesi Grid -->
+        <main class="flex-1">
+            <div id="titlesGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-12">
+                <!-- Başlık kartları JS ile dinamik olarak yerleştirilecek -->
+            </div>
+            
+            <div id="emptyState" class="hidden text-center py-16 px-4">
+                <div class="w-16 h-16 bg-slate-200/60 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-400">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                </div>
+                <p class="text-slate-500 font-medium">Henüz eklenmiş bir başlık yok.</p>
+                <p class="text-xs text-slate-400 mt-1">Yukarıdaki alandan ilk başlığı ekleyebilirsiniz!</p>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, onSnapshot, setDoc, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Firebase Ve Ortam Kurulumu
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'shared-board-app-default';
+        let firebaseConfig = null;
+        let initialToken = null;
+
+        if (typeof __firebase_config !== 'undefined') {
+            try {
+                firebaseConfig = JSON.parse(__firebase_config);
+            } catch (e) {
+                console.warn("Firebase config okunamadı:", e);
+            }
+        }
+        if (typeof __initial_auth_token !== 'undefined') {
+            initialToken = __initial_auth_token;
+        }
+
+        // Firebase Başlatma
+        let app = null;
+        let auth = null;
+        let db = null;
+
+        if (firebaseConfig) {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        }
+
+        // Firestore Yolları (MANDATORY RULE 1)
+        const titlesCollectionPath = `artifacts/${appId}/public/data/titles`;
+        const settingsCollectionPath = `artifacts/${appId}/public/data/settings`;
+
+        // Uygulama Durumu
+        let currentUser = null; // 'user1' veya 'user2'
+        let authReady = false;
+        
+        let userColors = {
+            'user1': localStorage.getItem('color_user1') || '#f97316', // Turuncu
+            'user2': localStorage.getItem('color_user2') || '#06b6d4'  // Turkuaz
+        };
+
+        let titlesList = JSON.parse(localStorage.getItem('local_titles') || '[]');
+
+        // DOM Elemanları
+        const loginScreen = document.getElementById('loginScreen');
+        const appScreen = document.getElementById('appScreen');
+        const loginForm = document.getElementById('loginForm');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginError = document.getElementById('loginError');
+        
+        const currentUserLabel = document.getElementById('currentUserLabel');
+        const userAvatar = document.getElementById('userAvatar');
+        const logoutBtn = document.getElementById('logoutBtn');
+        
+        const addTitleForm = document.getElementById('addTitleForm');
+        const titleInput = document.getElementById('titleInput');
+        const titlesGrid = document.getElementById('titlesGrid');
+        const emptyState = document.getElementById('emptyState');
+        
+        const colorUser1 = document.getElementById('colorUser1');
+        const colorUser2 = document.getElementById('colorUser2');
+        const hexUser1 = document.getElementById('hexUser1');
+        const hexUser2 = document.getElementById('hexUser2');
+
+        // Renk Arayüzünü Güncelle
+        function updateColorInputs() {
+            colorUser1.value = userColors.user1;
+            colorUser2.value = userColors.user2;
+            hexUser1.textContent = userColors.user1;
+            hexUser2.textContent = userColors.user2;
+        }
+
+        updateColorInputs();
+
+        // Firebase Kimlik Doğrulama
+        async function authenticateFirebase() {
+            if (!auth) {
+                authReady = true;
+                return;
+            }
+            try {
+                if (initialToken) {
+                    await signInWithCustomToken(auth, initialToken);
+                } else {
+                    await signInAnonymously(auth);
+                }
+                authReady = true;
+                console.log("Firebase kimlik doğrulama başarılı.");
+            } catch (err) {
+                console.warn("Firebase kimlik doğrulama hatası, yerel mod etkin:", err);
+                authReady = true;
+            }
+        }
+
+        authenticateFirebase();
+
+        // GitHub Pages Uyumlu Giriş Fonksiyonu
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault(); // Sayfa yenilenmesini ENGELLE (GitHub Pages Fix)
+            loginError.classList.add('hidden');
+
+            const pass = passwordInput.value.trim();
+
+            if (pass === '1234') {
+                currentUser = 'user1';
+                openAppScreen('Kullanıcı 1', '#f97316');
+            } else if (pass === '5678') {
+                currentUser = 'user2';
+                openAppScreen('Kullanıcı 2', '#06b6d4');
+            } else {
+                loginError.classList.remove('hidden');
+                passwordInput.select();
+            }
+        });
+
+        function openAppScreen(label, avatarBg) {
+            loginScreen.classList.add('hidden');
+            appScreen.classList.remove('hidden');
+            appScreen.classList.add('flex');
+            
+            currentUserLabel.textContent = label;
+            userAvatar.textContent = currentUser === 'user1' ? '1' : '2';
+            userAvatar.style.backgroundColor = avatarBg;
+
+            // Veri Dinleyicilerini Başlat
+            if (authReady) {
+                initRealtimeListeners();
+            } else {
+                const checkInterval = setInterval(() => {
+                    if (authReady) {
+                        clearInterval(checkInterval);
+                        initRealtimeListeners();
+                    }
+                }, 200);
+            }
+            
+            renderTitles();
+        }
+
+        logoutBtn.addEventListener('click', () => {
+            currentUser = null;
+            passwordInput.value = '';
+            appScreen.classList.add('hidden');
+            appScreen.classList.remove('flex');
+            loginScreen.classList.remove('hidden');
+        });
+
+        // Firebase Firestore Dinleyicileri
+        function initRealtimeListeners() {
+            if (!db || !auth?.currentUser) {
+                renderTitles();
+                return;
+            }
+
+            // 1. Başlıkları Dinle (RULE 2: Basit sorgu, sıralama bellekte)
+            try {
+                const titlesCol = collection(db, titlesCollectionPath);
+                onSnapshot(titlesCol, (snapshot) => {
+                    const fetched = [];
+                    snapshot.forEach(doc => {
+                        fetched.push({ id: doc.id, ...doc.data() });
+                    });
+                    // Zamana göre sırala
+                    fetched.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+                    titlesList = fetched;
+                    
+                    // LocalStorage yedekle
+                    localStorage.setItem('local_titles', JSON.stringify(titlesList));
+                    renderTitles();
+                }, (error) => {
+                    console.error("Firestore başlık okuma hatası:", error);
+                    renderTitles();
+                });
+            } catch (err) {
+                console.error("Dinleyici başlatılamadı:", err);
+            }
+
+            // 2. Renk Ayarlarını Dinle
+            try {
+                const settingsCol = collection(db, settingsCollectionPath);
+                onSnapshot(settingsCol, (snapshot) => {
+                    snapshot.forEach(doc => {
+                        const data = doc.data();
+                        if (doc.id === 'user1' && data.color) {
+                            userColors.user1 = data.color;
+                            localStorage.setItem('color_user1', data.color);
+                        }
+                        if (doc.id === 'user2' && data.color) {
+                            userColors.user2 = data.color;
+                            localStorage.setItem('color_user2', data.color);
+                        }
+                    });
+                    updateColorInputs();
+                    renderTitles();
+                }, (error) => {
+                    console.error("Firestore renk okuma hatası:", error);
+                });
+            } catch (err) {
+                console.error("Renk dinleyici hatası:", err);
+            }
+        }
+
+        // Başlık Ekleme İşlemi
+        addTitleForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = titleInput.value.trim();
+            if (!text || !currentUser) return;
+
+            const newTitle = {
+                text: text,
+                author: currentUser,
+                timestamp: Date.now()
+            };
+
+            titleInput.value = '';
+
+            // Firestore'a Kaydet
+            if (db && auth?.currentUser) {
+                try {
+                    const titlesCol = collection(db, titlesCollectionPath);
+                    await addDoc(titlesCol, newTitle);
+                    showToast("Başlık panoya eklendi!");
+                } catch (err) {
+                    console.error("Firestore ekleme hatası:", err);
+                    saveToLocalStorage(newTitle);
+                }
+            } else {
+                saveToLocalStorage(newTitle);
+            }
+        });
+
+        function saveToLocalStorage(titleObj) {
+            titleObj.id = 'local_' + Date.now();
+            titlesList.push(titleObj);
+            localStorage.setItem('local_titles', JSON.stringify(titlesList));
+            renderTitles();
+            showToast("Başlık yerel hafızaya eklendi!");
+        }
+
+        // Başlık Silme
+        async function deleteTitle(id) {
+            if (db && auth?.currentUser && !id.startsWith('local_')) {
+                try {
+                    await deleteDoc(doc(db, titlesCollectionPath, id));
+                    showToast("Başlık silindi.");
+                } catch (err) {
+                    console.error("Silme hatası:", err);
+                }
+            } else {
+                titlesList = titlesList.filter(t => t.id !== id);
+                localStorage.setItem('local_titles', JSON.stringify(titlesList));
+                renderTitles();
+                showToast("Başlık silindi.");
+            }
+        }
+
+        // Global erişim için window nesnesine ekle
+        window.deleteTitle = deleteTitle;
+
+        // Renk Değişimlerini Dinleme & Güncelleme
+        async function saveUserColor(userId, colorHex) {
+            userColors[userId] = colorHex;
+            localStorage.setItem(`color_${userId}`, colorHex);
+            updateColorInputs();
+            renderTitles();
+
+            if (db && auth?.currentUser) {
+                try {
+                    const userDoc = doc(db, settingsCollectionPath, userId);
+                    await setDoc(userDoc, { color: colorHex }, { merge: true });
+                } catch (err) {
+                    console.error("Renk güncellenirken hata oluştu:", err);
+                }
+            }
+        }
+
+        colorUser1.addEventListener('input', (e) => saveUserColor('user1', e.target.value));
+        colorUser2.addEventListener('input', (e) => saveUserColor('user2', e.target.value));
+
+        // Kontrast Kontrolü (Açık renge koyu metin, koyu renge beyaz metin)
+        function getContrastYIQ(hexcolor) {
+            hexcolor = hexcolor.replace("#", "");
+            if (hexcolor.length === 3) {
+                hexcolor = hexcolor.split('').map(c => c + c).join('');
+            }
+            const r = parseInt(hexcolor.substr(0,2),16);
+            const g = parseInt(hexcolor.substr(2,2),16);
+            const b = parseInt(hexcolor.substr(4,2),16);
+            const yiq = ((r*299)+(g*587)+(b*114))/1000;
+            return (yiq >= 128) ? 'text-slate-900' : 'text-white';
+        }
+
+        // Arayüzü Çizme
+        function renderTitles() {
+            titlesGrid.innerHTML = '';
+
+            if (!titlesList || titlesList.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+
+            titlesList.forEach(item => {
+                const authorKey = item.author || 'user1';
+                const cardColor = userColors[authorKey] || '#f97316';
+                const textContrastClass = getContrastYIQ(cardColor);
+                const isAuthor = authorKey === currentUser;
+                const authorName = authorKey === 'user1' ? 'Kullanıcı 1' : 'Kullanıcı 2';
+
+                const formattedTime = new Date(item.timestamp).toLocaleString('tr-TR', {
+                    day: 'numeric',
+                    month: 'short',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                const card = document.createElement('div');
+                card.className = `animate-card relative p-5 rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between ${textContrastClass}`;
+                card.style.backgroundColor = cardColor;
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-center mb-3 pb-2 border-b border-black/10">
+                            <span class="text-xs font-bold uppercase tracking-wider opacity-85 flex items-center gap-1.5">
+                                <span class="w-2 h-2 rounded-full bg-current"></span>
+                                ${authorName}
+                            </span>
+                            <span class="text-[11px] font-medium opacity-70">${formattedTime}</span>
+                        </div>
+                        <p class="text-base font-semibold leading-relaxed break-words">${escapeHtml(item.text)}</p>
+                    </div>
+                    
+                    <div class="mt-4 pt-2 flex justify-between items-center text-xs opacity-75">
+                        <span class="text-[10px] uppercase font-mono">${authorKey === 'user1' ? 'K1' : 'K2'} Panosu</span>
+                        <button onclick="window.deleteTitle('${item.id}')" 
+                            class="p-1.5 rounded-lg bg-black/10 hover:bg-black/20 active:scale-95 transition-all" title="Başlığı Sil">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+
+                titlesGrid.appendChild(card);
+            });
+        }
+
+        // XSS Önleme Yardımcısı
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;")
+                      .replace(/</g, "&lt;")
+                      .replace(/>/g, "&gt;")
+                      .replace(/"/g, "&quot;")
+                      .replace(/'/g, "&#039;");
+        }
+
+        // Tost Bildirimi
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toastMsg');
+            toastMsg.textContent = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
