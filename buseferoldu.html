@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>İrmik Helvası Tarifi İle İlgili Bir Site</title>
+        <title>İrmik Helvası Panosu</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Font - Inter -->
@@ -55,7 +55,6 @@
                 <p class="text-sm text-slate-500 mt-1">Lütfen size verilen şifre ile giriş yapın.</p>
             </div>
             
-            <!-- GitHub Pages yenileme sorununu çözen e.preventDefault uyumlu form -->
             <form id="loginForm" class="space-y-4">
                 <div>
                     <label for="passwordInput" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">Şifre</label>
@@ -72,10 +71,6 @@
 
             <div id="loginError" class="mt-4 p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-medium rounded-xl text-center hidden">
                 ⚠️ Hatalı şifre! Lütfen tekrar deneyin.
-            </div>
-
-            <div class="mt-8 pt-6 border-t border-slate-100 text-center text-xs text-slate-400 space-y-1">
-                <p>🔑 İrmik Şifre: <span class="font-mono font-bold text-slate-600">benim doğum tarihim gün.ay.yıl(01.01.2000)</span></p>
             </div>
         </div>
     </div>
@@ -103,7 +98,7 @@
             </button>
         </header>
 
-        <!-- Dynamic Color Settings Panel -->
+        <!-- Dinamik Renk Ayarları Paneli -->
         <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200/80 mb-6">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
@@ -111,7 +106,7 @@
                     <p class="text-xs text-slate-400 mt-0.5">Seçtiğiniz renkler tüm cihazlarda anında güncellenir.</p>
                 </div>
                 <div class="flex items-center gap-6 w-full sm:w-auto justify-between sm:justify-end bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                    <!-- User 1 Color -->
+                    <!-- Kullanıcı 1 Rengi -->
                     <div class="flex items-center gap-2.5">
                         <input type="color" id="colorUser1" value="#f97316" title="Kullanıcı 1 Rengi">
                         <div class="text-left">
@@ -122,7 +117,7 @@
                     
                     <div class="h-8 w-px bg-slate-200"></div>
 
-                    <!-- User 2 Color -->
+                    <!-- Kullanıcı 2 Rengi -->
                     <div class="flex items-center gap-2.5">
                         <input type="color" id="colorUser2" value="#06b6d4" title="Kullanıcı 2 Rengi">
                         <div class="text-left">
@@ -173,38 +168,33 @@
         </main>
     </div>
 
+    <!-- Firebase ve Uygulama Mantığı -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, onSnapshot, setDoc, addDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-//apıkey
-        // Import the functions you need from the SDKs you need
-        import { initializeApp } from "firebase/app";
-        // TODO: Add SDKs for Firebase products that you want to use
-        // https://firebase.google.com/docs/web/setup#available-libraries
 
-        // Your web app's Firebase configuration
+        // ==========================================
+        // SİZİN FİREBASE YAPILANDIRMANIZ
+        // ==========================================
         const firebaseConfig = {
-          apiKey: "AIzaSyABROfgph00-e8eT1VwLDPnvFK6gDUNyUY",
-          authDomain: "helva-d41f1.firebaseapp.com",
-          projectId: "helva-d41f1",
-          storageBucket: "helva-d41f1.firebasestorage.app",
-          messagingSenderId: "490873250847",
-          appId: "1:490873250847:web:d38beb9ba3480c78e3212a"
+            apiKey: "AIzaSyABROfgph00-e8eT1VwLDPnvFK6gDUNyUY",
+            authDomain: "helva-d41f1.firebaseapp.com",
+            projectId: "helva-d41f1",
+            storageBucket: "helva-d41f1.firebasestorage.app",
+            messagingSenderId: "490873250847",
+            appId: "1:490873250847:web:d38beb9ba3480c78e3212a"
         };
+        // ==========================================
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-
-//apıkey
         // Firebase Başlatma
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
         // Firestore Yolları
-        const titlesCollectionPath = `artifacts/${appId}/public/data/titles`;
-        const settingsCollectionPath = `artifacts/${appId}/public/data/settings`;
+        const titlesCollectionPath = `titles`;
+        const settingsCollectionPath = `settings`;
 
         // Uygulama Durumu
         let currentUser = null; 
@@ -212,10 +202,10 @@
         
         let userColors = {
             'user1': localStorage.getItem('color_user1') || '#f97316',
-            'user2': localStorage.getItem('color_user2') || '#06b6d4' 
+            'user2': localStorage.getItem('color_user2') || '#06b6d4'
         };
 
-        let titlesList = JSON.parse(localStorage.getItem('local_titles') || '[]');
+        let titlesList = [];
 
         // DOM Elemanları
         const loginScreen = document.getElementById('loginScreen');
@@ -253,18 +243,37 @@
             try {
                 await signInAnonymously(auth);
                 authReady = true;
-                console.log("Firebase veritabanına bağlanıldı!");
+                console.log("Firebase anonim giriş başarılı.");
             } catch (err) {
-                console.error("Firebase'e bağlanılamadı. Bilgilerini kontrol et:", err);
-                alert("Veritabanına bağlanılamadı. Lütfen Firebase ayarlarını (firebaseConfig) doğru girdiğinden emin ol.");
+                console.warn("Firebase bağlantı hatası:", err);
+                authReady = true;
             }
         }
 
         authenticateFirebase();
 
+        // XSS Önlemi
+        function escapeHtml(unsafe) {
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+
         // Giriş Fonksiyonu
         loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
+            e.preventDefault(); 
             loginError.classList.add('hidden');
 
             const pass = passwordInput.value.trim();
@@ -299,7 +308,7 @@
                         clearInterval(checkInterval);
                         initRealtimeListeners();
                     }
-                }, 500);
+                }, 200);
             }
             
             renderTitles();
@@ -313,9 +322,11 @@
             loginScreen.classList.remove('hidden');
         });
 
-        // Firebase Firestore Dinleyicileri (Gerçek Zamanlı Veri Çekme)
+        // Firebase Firestore Dinleyicileri (Anlık Güncelleme İçin)
         function initRealtimeListeners() {
-            if (!db || !auth.currentUser) return;
+            if (!db || !auth?.currentUser) {
+                return;
+            }
 
             // 1. Başlıkları Dinle
             try {
@@ -325,12 +336,11 @@
                     snapshot.forEach(doc => {
                         fetched.push({ id: doc.id, ...doc.data() });
                     });
-                    
-                    fetched.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)); // En yeni en üstte
+                    fetched.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)); // Yeniler üstte
                     titlesList = fetched;
-                    
-                    localStorage.setItem('local_titles', JSON.stringify(titlesList)); // Çevrimdışı yedek
                     renderTitles();
+                }, (error) => {
+                    console.error("Firestore başlık okuma hatası:", error);
                 });
             } catch (err) {
                 console.error("Dinleyici başlatılamadı:", err);
@@ -359,7 +369,7 @@
             }
         }
 
-        // Başlık Ekleme İşlemi (Veritabanına)
+        // Başlık Ekleme İşlemi
         addTitleForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const text = titleInput.value.trim();
@@ -373,41 +383,42 @@
 
             titleInput.value = '';
 
-            if (db && auth.currentUser) {
+            // Firestore'a Kaydet
+            if (db && auth?.currentUser) {
                 try {
                     const titlesCol = collection(db, titlesCollectionPath);
                     await addDoc(titlesCol, newTitle);
-                    showToast("Başlık veritabanına eklendi!");
+                    showToast("Başlık panoya eklendi!");
                 } catch (err) {
                     console.error("Firestore ekleme hatası:", err);
-                    alert("Ekleme başarısız! Firebase ayarlarını veya izinlerini kontrol et.");
+                    showToast("Bağlantı hatası: Başlık eklenemedi.");
                 }
             }
         });
 
         // Başlık Silme
         async function deleteTitle(id) {
-            if (db && auth.currentUser && !id.startsWith('local_')) {
+            if (db && auth?.currentUser) {
                 try {
                     await deleteDoc(doc(db, titlesCollectionPath, id));
                     showToast("Başlık silindi.");
                 } catch (err) {
                     console.error("Silme hatası:", err);
-                    alert("Silme başarısız. Yetkiniz olmayabilir.");
                 }
             }
         }
 
+        // Global erişim için window nesnesine ekle
         window.deleteTitle = deleteTitle;
 
-        // Renk Değişimlerini Veritabanına Kaydetme
+        // Renk Değişimlerini Dinleme & Güncelleme
         async function saveUserColor(userId, colorHex) {
             userColors[userId] = colorHex;
             localStorage.setItem(`color_${userId}`, colorHex);
             updateColorInputs();
             renderTitles();
 
-            if (db && auth.currentUser) {
+            if (db && auth?.currentUser) {
                 try {
                     const userDoc = doc(db, settingsCollectionPath, userId);
                     await setDoc(userDoc, { color: colorHex }, { merge: true });
@@ -417,10 +428,10 @@
             }
         }
 
-        colorUser1.addEventListener('input', (e) => saveUserColor('user1', e.target.value));
-        colorUser2.addEventListener('input', (e) => saveUserColor('user2', e.target.value));
+        colorUser1.addEventListener('change', (e) => saveUserColor('user1', e.target.value));
+        colorUser2.addEventListener('change', (e) => saveUserColor('user2', e.target.value));
 
-        // Kontrast Kontrolü
+        // Kontrast Kontrolü (Açık renge koyu metin, koyu renge beyaz metin)
         function getContrastYIQ(hexcolor) {
             hexcolor = hexcolor.replace("#", "");
             if (hexcolor.length === 3) {
@@ -452,10 +463,7 @@
                 const authorName = authorKey === 'user1' ? 'Irmak' : 'Ali Eren K.';
 
                 const formattedTime = new Date(item.timestamp).toLocaleString('tr-TR', {
-                    day: 'numeric',
-                    month: 'short',
-                    hour: '2-digit',
-                    minute: '2-digit'
+                    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
                 });
 
                 const card = document.createElement('div');
@@ -475,7 +483,7 @@
                     </div>
                     
                     <div class="mt-4 pt-2 flex justify-between items-center text-xs opacity-75">
-                        <span class="text-[10px] uppercase font-mono">${authorKey === 'user1' ? 'K1' : 'K2'} Panosu</span>
+                        <span class="text-[10px] uppercase font-mono">${authorKey === 'user1' ? 'Irmak' : 'Ali'} Panosu</span>
                         <button onclick="window.deleteTitle('${item.id}')" 
                             class="p-1.5 rounded-lg bg-black/10 hover:bg-black/20 active:scale-95 transition-all" title="Başlığı Sil">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -484,29 +492,8 @@
                         </button>
                     </div>
                 `;
-
                 titlesGrid.appendChild(card);
             });
-        }
-
-        // XSS Önleme Yardımcısı
-        function escapeHtml(str) {
-            return str.replace(/&/g, "&amp;")
-                      .replace(/</g, "&lt;")
-                      .replace(/>/g, "&gt;")
-                      .replace(/"/g, "&quot;")
-                      .replace(/'/g, "&#039;");
-        }
-
-        // Tost Bildirimi
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toastMsg');
-            toastMsg.textContent = msg;
-            toast.classList.remove('hidden');
-            setTimeout(() => {
-                toast.classList.add('hidden');
-            }, 3000);
         }
     </script>
 </body>
