@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>İki Kişilik Ortak Pano</title>
+        <title>İrmik Helvası Tarifi İle İlgili Bir Site</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Font - Inter -->
@@ -51,8 +51,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                     </svg>
                 </div>
-                <h1 class="text-2xl font-bold text-slate-800">Ortak Panoya Giriş</h1>
-                <p class="text-sm text-slate-500 mt-1">Lütfen erişim şifrenizi girin</p>
+                <h1 class="text-2xl font-bold text-slate-800">Giriş</h1>
+                <p class="text-sm text-slate-500 mt-1">Lütfen size verilen şifre ile giriş yapın.</p>
             </div>
             
             <!-- GitHub Pages yenileme sorununu çözen e.preventDefault uyumlu form -->
@@ -75,8 +75,7 @@
             </div>
 
             <div class="mt-8 pt-6 border-t border-slate-100 text-center text-xs text-slate-400 space-y-1">
-                <p>🔑 Kullanıcı 1 Şifresi: <span class="font-mono font-bold text-slate-600">1234</span></p>
-                <p>🔑 Kullanıcı 2 Şifresi: <span class="font-mono font-bold text-slate-600">5678</span></p>
+                <p>🔑 İrmik Şifre: <span class="font-mono font-bold text-slate-600">benim doğum tarihim gün.ay.yıl(01.01.2000)</span></p>
             </div>
         </div>
     </div>
@@ -116,7 +115,7 @@
                     <div class="flex items-center gap-2.5">
                         <input type="color" id="colorUser1" value="#f97316" title="Kullanıcı 1 Rengi">
                         <div class="text-left">
-                            <span class="block text-xs font-semibold text-slate-700">Kullanıcı 1</span>
+                            <span class="block text-xs font-semibold text-slate-700">Irmak</span>
                             <span id="hexUser1" class="block text-[10px] font-mono text-slate-400">#f97316</span>
                         </div>
                     </div>
@@ -127,7 +126,7 @@
                     <div class="flex items-center gap-2.5">
                         <input type="color" id="colorUser2" value="#06b6d4" title="Kullanıcı 2 Rengi">
                         <div class="text-left">
-                            <span class="block text-xs font-semibold text-slate-700">Kullanıcı 2</span>
+                            <span class="block text-xs font-semibold text-slate-700">Ali Eren K.</span>
                             <span id="hexUser2" class="block text-[10px] font-mono text-slate-400">#06b6d4</span>
                         </div>
                     </div>
@@ -281,12 +280,12 @@
 
             const pass = passwordInput.value.trim();
 
-            if (pass === '1234') {
+            if (pass === '30.01.2008') {
                 currentUser = 'user1';
-                openAppScreen('Kullanıcı 1', '#f97316');
-            } else if (pass === '5678') {
+                openAppScreen('Irmak', '#f97316');
+            } else if (pass === '3008A!k00') {
                 currentUser = 'user2';
-                openAppScreen('Kullanıcı 2', '#06b6d4');
+                openAppScreen('AEK', '#06b6d4');
             } else {
                 loginError.classList.remove('hidden');
                 passwordInput.select();
